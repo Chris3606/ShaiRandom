@@ -747,7 +747,7 @@ namespace ShaiRandom
         /// <returns>the highest random number between innerBound (inclusive) and outerBound (exclusive) this found</returns>
         long MaxLongOf(long innerBound, long outerBound, int trials);
         /// <summary>
-        /// Returns the minimum result of trials calls to <see cref="NextUInt(int, int)"/> using the given innerBound
+        /// Returns the minimum result of trials calls to <see cref="NextUInt(uint, uint)"/> using the given innerBound
         /// and outerBound. The innerBound is inclusive; the outerBound is exclusive.
         /// The higher trials is, the lower the average value this returns.
         /// </summary>
@@ -758,7 +758,7 @@ namespace ShaiRandom
         uint MinUIntOf(uint innerBound, uint outerBound, int trials);
 
         /// <summary>
-        /// Returns the maximum result of trials calls to <see cref="NextUInt(int, int)"/> using the given innerBound
+        /// Returns the maximum result of trials calls to <see cref="NextUInt(uint, uint)"/> using the given innerBound
         /// and outerBound. The innerBound is inclusive; the outerBound is exclusive.
         /// The higher trials is, the higher the average value this returns.
         /// </summary>
@@ -769,7 +769,7 @@ namespace ShaiRandom
         uint MaxUIntOf(uint innerBound, uint outerBound, int trials);
 
         /// <summary>
-        /// Returns the minimum result of trials calls to <see cref="NextULong(long, long)"/> using the given innerBound
+        /// Returns the minimum result of trials calls to <see cref="NextULong(ulong, ulong)"/> using the given innerBound
         /// and outerBound. The innerBound is inclusive; the outerBound is exclusive.
         /// The higher trials is, the lower the average value this returns.
         /// </summary>
@@ -780,7 +780,7 @@ namespace ShaiRandom
         ulong MinULongOf(ulong innerBound, ulong outerBound, int trials);
 
         /// <summary>
-        /// Returns the maximum result of trials calls to <see cref="NextULong(long, long)"/> using the given innerBound
+        /// Returns the maximum result of trials calls to <see cref="NextULong(ulong, ulong)"/> using the given innerBound
         /// and outerBound. The innerBound is inclusive; the outerBound is exclusive.
         /// The higher trials is, the higher the average value this returns.
         /// </summary>
@@ -1036,8 +1036,8 @@ namespace ShaiRandom
         /// <summary>
         /// Given a string produced by <see cref="StringSerialize()"/> on any valid subclass of AbstractRandom,
         /// this returns a new IEnhancedRandom with the same implementation and state it had when it was serialized.
-        /// This handles all AbstractRandom implementations in this library, including <see cref="TRWrapper"/> and
-        /// <see cref="ReversingWrapper"/> (both of which it currently handles with a special case).
+        /// This handles all AbstractRandom implementations in this library <see cref="ReversingWrapper"/> (which it
+        /// currently handles with a special case).
         /// </summary>
         /// <param name="data">A string produced by an AbstractRandom's StringSerialize() method.</param>
         /// <returns>A newly-allocated IEnhancedRandom matching the implementation and state of the serialized AbstractRandom.</returns>
@@ -1217,7 +1217,7 @@ namespace ShaiRandom
             return (uint)(NextULong() >> 64 - bits);
         }
 
-        /// <inheritdoc />
+        /// <inheritdoc cref="IEnhancedRandom.NextBytes(byte[])"/>
         public void NextBytes(byte[] bytes)
         {
             int bl = bytes.Length;
@@ -1237,13 +1237,13 @@ namespace ShaiRandom
             return (int)NextULong();
         }
 
-        /// <inheritdoc />
+        /// <inheritdoc cref="IEnhancedRandom.NextUInt()"/>
         public uint NextUInt()
         {
             return (uint)NextULong();
         }
 
-        /// <inheritdoc />
+        /// <inheritdoc cref="IEnhancedRandom.NextUInt(uint)"/>
         public uint NextUInt(uint bound)
         {
             return (uint)(bound * (NextULong() & 0xFFFFFFFFUL) >> 32);
@@ -1326,19 +1326,19 @@ namespace ShaiRandom
         }
 
 
-        /// <inheritdoc />
+        /// <inheritdoc cref="IEnhancedRandom.NextDouble()"/>
         public virtual double NextDouble()
         {
             return (NextULong() >> 11) * DOUBLE_ADJUST;
         }
 
-        /// <inheritdoc />
+        /// <inheritdoc cref="IEnhancedRandom.NextDouble(double)"/>
         public double NextDouble(double outerBound)
         {
             return NextDouble() * outerBound;
         }
 
-        /// <inheritdoc />
+        /// /// <inheritdoc cref="IEnhancedRandom.NextDouble(double, double)"/>
         public double NextDouble(double innerBound, double outerBound)
         {
             return innerBound + NextDouble() * (outerBound - innerBound);
