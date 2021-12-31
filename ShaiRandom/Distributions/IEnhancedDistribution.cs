@@ -49,7 +49,7 @@ namespace ShaiRandom.Distributions
     /// <summary>
     ///   Declares common functionality for all continuous random number distributions.
     /// </summary>
-    public interface IEnhancedContinuousDistribution : IEnhancedDistribution
+    public interface IEnhancedContinuousDistribution : IEnhancedDistribution, IContinuousDistribution
     {
     }
 
