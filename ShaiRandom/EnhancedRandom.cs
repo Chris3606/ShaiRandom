@@ -1043,8 +1043,6 @@ namespace ShaiRandom
         /// <returns>A newly-allocated IEnhancedRandom matching the implementation and state of the serialized AbstractRandom.</returns>
         public static IEnhancedRandom Deserialize(string data)
         {
-            if (data.StartsWith('T'))
-                return new TRWrapper(TAGS[data.Substring(1, 4)].Copy().StringDeserialize(data));
             if (data.StartsWith('R'))
                 return new ReversingWrapper(TAGS[data.Substring(1, 4)].Copy().StringDeserialize(data));
             return TAGS[data.Substring(1, 4)].Copy().StringDeserialize(data);

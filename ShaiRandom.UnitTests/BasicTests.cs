@@ -118,18 +118,6 @@ namespace ShaiRandom.UnitTests
         }
 
         [Fact]
-        public void TRWrapperSerDeserTest()
-        {
-            TRWrapper random = new TRWrapper(new FourWheelRandom(123456789UL, 0xFA7BAB1E5UL, 0xB0BAFE77UL, 0x1234123412341234UL));
-            random.NextULong();
-            string data = random.StringSerialize();
-            Assert.StartsWith("TFoWR`", data);
-            IEnhancedRandom random2 = AbstractRandom.Deserialize(data);
-            Assert.Equal(random.NextULong(), random2.NextULong());
-            Assert.Equal(random, random2);
-        }
-
-        [Fact]
         public void ReversingWrapperSerDeserTest()
         {
             ReversingWrapper random = new ReversingWrapper(new FourWheelRandom(123456789UL, 0xFA7BAB1E5UL, 0xB0BAFE77UL, 0x1234123412341234UL));
