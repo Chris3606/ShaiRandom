@@ -106,7 +106,7 @@ namespace ShaiRandom.Distributions
         bool IDistribution.CanReset => false;
 
         /// <inheritdoc />
-        IGenerator IDistribution.Generator => throw new NotImplementedException(); // Need to implement this after IEnhancedRandom implements IGenerator
+        IGenerator IDistribution.Generator => Generator;
 
         /// <inheritdoc />
         bool IDistribution.Reset() => false;

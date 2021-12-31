@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using ShaiRandom.Generators;
 using ShaiRandom.Wrappers;
+using Troschuetz.Random;
 
 namespace ShaiRandom
 {
@@ -42,7 +43,7 @@ namespace ShaiRandom
     /// <summary>
     /// The interface view of the functionality typically provided by <see cref="AbstractRandom"/>.
     /// </summary>
-    public interface IEnhancedRandom
+    public interface IEnhancedRandom : IGenerator
     {
         /// <summary>
         /// Sets the seed of this random number generator using a single ulong seed.
@@ -52,7 +53,7 @@ namespace ShaiRandom
         /// so <see cref="SelectState(int)"/> should not be expected to return seed after this, though it may.
         /// </remarks>
         /// <param name="seed">May be any ulong; if the seed would give an invalid state, the generator is expected to correct that state.</param>
-        void Seed(ulong seed);
+        new void Seed(ulong seed);
         /// <summary>
         /// Gets the number of possible state variables that can be selected with
         /// <see cref="SelectState(int)"/> or <see cref="SetSelectedState(int, ulong)"/>,
@@ -202,6 +203,7 @@ namespace ShaiRandom
         /// </summary>
         /// <param name="states">an array or varargs of ulong values to use as states</param>
         void SetState(params ulong[] states);
+
         /// <summary>
         /// Can return any ulong.
         /// </summary>
@@ -296,7 +298,7 @@ namespace ShaiRandom
         /// the length of the byte array.
         /// </summary>
         /// <param name="bytes">the byte array to fill with random bytes</param>
-        void NextBytes(byte[] bytes);
+        new void NextBytes(byte[] bytes);
 
         /// <summary>
         /// Returns the next pseudorandom, uniformly distributed int
@@ -316,7 +318,7 @@ namespace ShaiRandom
         /// Gets a random uint by using the low 32 bits of NextULong(); this can return any uint.
         /// </summary>
         /// <returns>Any random uint.</returns>
-        uint NextUInt();
+        new uint NextUInt();
 
         /// <summary>
         /// Returns a pseudorandom, uniformly distributed uint value
@@ -342,7 +344,7 @@ namespace ShaiRandom
         /// <returns>the next pseudorandom, uniformly distributed int
         /// value between zero (inclusive) and bound (exclusive)
         /// from this random number generator's sequence</returns>
-        uint NextUInt(uint bound);
+        new uint NextUInt(uint bound);
 
         /// <summary>
         /// Returns a pseudorandom, uniformly distributed int value between an
@@ -371,7 +373,8 @@ namespace ShaiRandom
         /// <param name="innerBound">the inclusive inner bound; may be any int, allowing negative</param>
         /// <param name="outerBound">the exclusive outer bound; must be greater than innerBound (otherwise this returns innerBound)</param>
         /// <returns>a pseudorandom int between innerBound (inclusive) and outerBound (exclusive)</returns>
-        uint NextUInt(uint innerBound, uint outerBound);
+        new uint NextUInt(uint innerBound, uint outerBound);
+
         /// <summary>
         /// Returns a pseudorandom, uniformly distributed int value between the
         /// specified innerBound (inclusive) and the specified outerBound
@@ -385,7 +388,6 @@ namespace ShaiRandom
         /// <param name="outerBound">the exclusive outer bound; may be any int, allowing negative</param>
         /// <returns>a pseudorandom int between innerBound (inclusive) and outerBound (exclusive)</returns>
         int NextInt(int innerBound, int outerBound);
-
 
         /// <summary>
         /// Returns the next pseudorandom, uniformly distributed
@@ -470,7 +472,7 @@ namespace ShaiRandom
         /// <returns>the next pseudorandom, uniformly distributed double
         /// value between 0.0 and 1.0 from this
         /// random number generator's sequence</returns>
-        double NextDouble();
+        new double NextDouble();
 
         /// <summary>
         /// Gets a pseudo-random double between 0 (inclusive) and outerBound (exclusive).
@@ -481,7 +483,7 @@ namespace ShaiRandom
         /// </remarks>
         /// <param name="outerBound">the exclusive outer bound</param>
         /// <returns>a double between 0 (inclusive) and outerBound (exclusive)</returns>
-        double NextDouble(double outerBound);
+        new double NextDouble(double outerBound);
 
         /// <summary>
         /// Gets a pseudo-random double between innerBound (inclusive) and outerBound (exclusive).
@@ -491,7 +493,7 @@ namespace ShaiRandom
         /// <param name="innerBound">the inclusive inner bound; may be negative</param>
         /// <param name="outerBound">the exclusive outer bound; may be negative</param>
         /// <returns>a double between innerBound (inclusive) and outerBound (exclusive)</returns>
-        double NextDouble(double innerBound, double outerBound);
+        new double NextDouble(double innerBound, double outerBound);
 
         /// <summary>
         /// This is just like <see cref="NextDouble()"/>, returning a double between 0 and 1, except that it is inclusive on both 0.0 and 1.0.
@@ -876,6 +878,53 @@ namespace ShaiRandom
         /// <param name="length">the length of the section to shuffle</param>
         void Shuffle<T>(IList<T> items, int offset, int length);
 
+        #region IGenerator Explicit Implementation
+        /// <summary>
+        /// IEnhancedRandom implementations do not support IGenerator's Reset functionality; use <see cref="SetState(ulong)"/>
+        /// and similar methods instead.
+        /// </summary>
+        bool IGenerator.CanReset => false;
+
+        /// <summary>
+        /// IEnhancedRandom implementations do not support retrieving a single uint Seed.  Either store it yourself when
+        /// you call the <see cref="Seed(ulong)"/> function, or just serialize the initial generator state instead.
+        /// </summary>
+        uint IGenerator.Seed => throw new NotSupportedException("IEnhancedRandom implementations do not support retrieving a single uint Seed.  Either store it yourself when you call the Seed() function, or just serialize the initial generator state instead.");
+
+        /// <inheritdoc />
+        int IGenerator.Next() => NextInt(int.MaxValue);
+        /// <inheritdoc />
+        int IGenerator.Next(int maxValue) => NextInt(maxValue);
+        /// <inheritdoc />
+        int IGenerator.Next(int minValue, int maxValue) => NextInt(minValue, maxValue);
+        /// <inheritdoc />
+        bool IGenerator.NextBoolean() => NextBool();
+        /// <inheritdoc />
+        void IGenerator.NextBytes(byte[] buffer) => NextBytes(buffer);
+        /// <inheritdoc />
+        double IGenerator.NextDouble() => NextDouble();
+        /// <inheritdoc />
+        double IGenerator.NextDouble(double maxValue) => NextDouble(maxValue);
+        /// <inheritdoc />
+        double IGenerator.NextDouble(double minValue, double maxValue) => NextDouble(minValue, maxValue);
+        /// <inheritdoc />
+        int IGenerator.NextInclusiveMaxValue() => (int)NextBits(31);
+        /// <inheritdoc />
+        uint IGenerator.NextUInt() => NextUInt(uint.MaxValue);
+        /// <inheritdoc />
+        uint IGenerator.NextUInt(uint maxValue) => NextUInt(maxValue);
+        /// <inheritdoc />
+        uint IGenerator.NextUInt(uint minValue, uint maxValue) => NextUInt(minValue, maxValue);
+        /// <inheritdoc />
+        uint IGenerator.NextUIntExclusiveMaxValue() => NextUInt(uint.MaxValue);
+        /// <inheritdoc />
+        uint IGenerator.NextUIntInclusiveMaxValue() => NextUInt();
+        /// <inheritdoc />
+        bool IGenerator.Reset() => false;
+        /// <inheritdoc />
+        bool IGenerator.Reset(uint seed) => false;
+
+        #endregion
     }
 
 
@@ -893,7 +942,7 @@ namespace ShaiRandom
     /// the other methods here, and some of them throw exceptions if that method is not available. Similarly, <see cref="SetSelectedState(int, ulong)"/> should
     /// be implemented to set specific states, especially if there is more than one state variable.
     /// </remarks>
-    [Serializable]
+    [System.Serializable]
     public abstract class AbstractRandom : IEnhancedRandom
     {
         private static readonly float FLOAT_ADJUST = MathF.Pow(2f, -24f);
