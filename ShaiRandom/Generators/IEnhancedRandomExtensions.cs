@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace ShaiRandom.Generators
@@ -19,6 +20,7 @@ namespace ShaiRandom.Generators
     /// <summary>
     /// A collection of useful extension methods for IEnhancedRandom implementations.
     /// </summary>
+    [SuppressMessage("ReSharper", "IteratorNeverReturns")]
     public static class EnhancedRandomExtensions
     {
         /// <summary>
@@ -814,5 +816,167 @@ namespace ShaiRandom.Generators
             }
             return true;
         }
+
+        #region IEnumerable Generation Functions
+
+        /// <summary>
+        /// Repeatedly calls the <see cref="IEnhancedRandom.NextBool()"/> function and returns its result.
+        /// </summary>
+        /// <remarks>
+        /// This function is implemented as an iterator using yield return, and as such it returns an infinite series,
+        /// but does so lazily (ie. values are not generated until you use them).  All typical caveats for
+        /// IEnumerable iterators apply.
+        ///
+        /// Additionally, like most IEnumerable iterator functions, this function is not particularly
+        /// fast; if you need to generate random values quickly, a regular while or for loop should be preferred.
+        /// </remarks>
+        /// <param name="rng"/>
+        /// <returns>An infinite series of results from <see cref="IEnhancedRandom.NextBool()"/>.</returns>
+        public static IEnumerable<bool> NextBools(this IEnhancedRandom rng)
+        {
+            while (true)
+                yield return rng.NextBool();
+        }
+
+        /// <summary>
+        /// Repeatedly calls the <see cref="NextBool(IEnhancedRandom, float)"/> function and returns its result.
+        /// </summary>
+        /// <remarks>
+        /// This function is implemented as an iterator using yield return, and as such it returns an infinite series,
+        /// but does so lazily (ie. values are not generated until you use them).  All typical caveats for
+        /// IEnumerable iterators apply.
+        ///
+        /// Additionally, like most IEnumerable iterator functions, this function is not particularly
+        /// fast; if you need to generate random values quickly, a regular while or for loop should be preferred.
+        /// </remarks>
+        /// <param name="rng"/>
+        /// <param name="chance">A float between 0.0 and 1.0; higher values are more likely to result in true for a given value returned.</param>
+        /// <returns>An infinite series of results from <see cref="NextBool(IEnhancedRandom, float)"/>.</returns>
+        public static IEnumerable<bool> NextBools(this IEnhancedRandom rng, float chance)
+        {
+            while (true)
+                yield return rng.NextBool(chance);
+        }
+
+        /// <summary>
+        /// Repeatedly calls the <see cref="IEnhancedRandom.NextInt()"/> function and returns its result.
+        /// </summary>
+        /// <remarks>
+        /// This function is implemented as an iterator using yield return, and as such it returns an infinite series,
+        /// but does so lazily (ie. values are not generated until you use them).  All typical caveats for
+        /// IEnumerable iterators apply.
+        ///
+        /// Additionally, like most IEnumerable iterator functions, this function is not particularly
+        /// fast; if you need to generate random values quickly, a regular while or for loop should be preferred.
+        /// </remarks>
+        /// <param name="rng"/>
+        /// <returns>An infinite series of results from <see cref="IEnhancedRandom.NextInt()"/>.</returns>
+        public static IEnumerable<int> NextInts(this IEnhancedRandom rng)
+        {
+            while (true)
+                yield return rng.NextInt();
+        }
+
+        /// <summary>
+        /// Repeatedly calls the <see cref="IEnhancedRandom.NextInt(int)"/> function and returns its result.
+        /// </summary>
+        /// <remarks>
+        /// This function is implemented as an iterator using yield return, and as such it returns an infinite series,
+        /// but does so lazily (ie. values are not generated until you use them).  All typical caveats for
+        /// IEnumerable iterators apply.
+        ///
+        /// Additionally, like most IEnumerable iterator functions, this function is not particularly
+        /// fast; if you need to generate random values quickly, a regular while or for loop should be preferred.
+        /// </remarks>
+        /// <param name="rng"/>
+        /// <param name="outerBound">The outer exclusive bound; may be any int value, allowing negative.</param>
+        /// <returns>An infinite series of results from <see cref="IEnhancedRandom.NextInt(int)"/>.</returns>
+        public static IEnumerable<int> NextInts(this IEnhancedRandom rng, int outerBound)
+        {
+            while (true)
+                yield return rng.NextInt(outerBound);
+        }
+
+        /// <summary>
+        /// Repeatedly calls the <see cref="IEnhancedRandom.NextInt(int, int)"/> function and returns its result.
+        /// </summary>
+        /// <remarks>
+        /// This function is implemented as an iterator using yield return, and as such it returns an infinite series,
+        /// but does so lazily (ie. values are not generated until you use them).  All typical caveats for
+        /// IEnumerable iterators apply.
+        ///
+        /// Additionally, like most IEnumerable iterator functions, this function is not particularly
+        /// fast; if you need to generate random values quickly, a regular while or for loop should be preferred.
+        /// </remarks>
+        /// <param name="rng"/>
+        /// <param name="innerBound">The inclusive inner bound; may be any int, allowing negative</param>
+        /// <param name="outerBound">The outer exclusive bound; may be any int, allowing negative.</param>
+        /// <returns>An infinite series of results from <see cref="IEnhancedRandom.NextInt(int, int)"/>.</returns>
+        public static IEnumerable<int> NextInts(this IEnhancedRandom rng, int innerBound, int outerBound)
+        {
+            while (true)
+                yield return rng.NextInt(innerBound, outerBound);
+        }
+
+        /// <summary>
+        /// Repeatedly calls the <see cref="IEnhancedRandom.NextUInt()"/> function and returns its result.
+        /// </summary>
+        /// <remarks>
+        /// This function is implemented as an iterator using yield return, and as such it returns an infinite series,
+        /// but does so lazily (ie. values are not generated until you use them).  All typical caveats for
+        /// IEnumerable iterators apply.
+        ///
+        /// Additionally, like most IEnumerable iterator functions, this function is not particularly
+        /// fast; if you need to generate random values quickly, a regular while or for loop should be preferred.
+        /// </remarks>
+        /// <param name="rng"/>
+        /// <returns>An infinite series of results from <see cref="IEnhancedRandom.NextUInt()"/>.</returns>
+        public static IEnumerable<uint> NextUInts(this IEnhancedRandom rng)
+        {
+            while (true)
+                yield return rng.NextUInt();
+        }
+
+        /// <summary>
+        /// Repeatedly calls the <see cref="IEnhancedRandom.NextUInt(uint)"/> function and returns its result.
+        /// </summary>
+        /// <remarks>
+        /// This function is implemented as an iterator using yield return, and as such it returns an infinite series,
+        /// but does so lazily (ie. values are not generated until you use them).  All typical caveats for
+        /// IEnumerable iterators apply.
+        ///
+        /// Additionally, like most IEnumerable iterator functions, this function is not particularly
+        /// fast; if you need to generate random values quickly, a regular while or for loop should be preferred.
+        /// </remarks>
+        /// <param name="rng"/>
+        /// <param name="bound">The upper bound (exclusive). If 0 or 1, this always returns 0.</param>
+        /// <returns>An infinite series of results from <see cref="IEnhancedRandom.NextUInt(uint)"/>.</returns>
+        public static IEnumerable<uint> NextUInts(this IEnhancedRandom rng, uint bound)
+        {
+            while (true)
+                yield return rng.NextUInt(bound);
+        }
+
+        /// <summary>
+        /// Repeatedly calls the <see cref="IEnhancedRandom.NextUInt(uint, uint)"/> function and returns its result.
+        /// </summary>
+        /// <remarks>
+        /// This function is implemented as an iterator using yield return, and as such it returns an infinite series,
+        /// but does so lazily (ie. values are not generated until you use them).  All typical caveats for
+        /// IEnumerable iterators apply.
+        ///
+        /// Additionally, like most IEnumerable iterator functions, this function is not particularly
+        /// fast; if you need to generate random values quickly, a regular while or for loop should be preferred.
+        /// </remarks>
+        /// <param name="rng"/>
+        /// <param name="innerBound">The inclusive inner bound; may be any uint value.</param>
+        /// <param name="outerBound">The exclusive outer bound; must be greater than innerBound (otherwise this returns innerBound).</param>
+        /// <returns>An infinite series of results from <see cref="IEnhancedRandom.NextUInt(uint, uint)"/>.</returns>
+        public static IEnumerable<uint> NextUInts(this IEnhancedRandom rng, uint innerBound, uint outerBound)
+        {
+            while (true)
+                yield return rng.NextUInt(innerBound, outerBound);
+        }
+        #endregion
     }
 }
