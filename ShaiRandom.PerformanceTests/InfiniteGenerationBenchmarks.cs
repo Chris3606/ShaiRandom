@@ -1,7 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using BenchmarkDotNet.Attributes;
+using ShaiRandom.Distributions.Continuous;
 using ShaiRandom.Generators;
+using Troschuetz.Random;
+using IContinuousDistribution = ShaiRandom.Distributions.IContinuousDistribution;
 
 namespace ShaiRandom.PerformanceTests
 {
@@ -186,5 +190,288 @@ namespace ShaiRandom.PerformanceTests
 
             return lastNum;
         }
+    }
+
+
+    public struct BetaSamplingIterator
+    {
+        private IEnhancedRandom _rng;
+        private double _alpha;
+        private double _beta;
+
+        private double _current;
+        public double Current => _current;
+
+        public BetaSamplingIterator(IEnhancedRandom rng, double alpha, double beta)
+        {
+            _rng = rng;
+            _alpha = alpha;
+            _beta = beta;
+            _current = 0;
+        }
+
+        public bool MoveNext()
+        {
+            _current = BetaDistribution.Sample(_rng, _alpha, _beta);
+            return true;
+        }
+
+        public BetaSamplingIterator GetEnumerator() => this;
+    }
+
+    public struct KumaraswamySamplingIterator
+    {
+        private IEnhancedRandom _rng;
+        private double _alpha;
+        private double _beta;
+
+        private double _current;
+        public double Current => _current;
+
+        public KumaraswamySamplingIterator(IEnhancedRandom rng, double alpha, double beta)
+        {
+            _rng = rng;
+            _alpha = alpha;
+            _beta = beta;
+            _current = 0;
+        }
+
+        public bool MoveNext()
+        {
+            _current = KumaraswamyDistribution.Sample(_rng, _alpha, _beta);
+            return true;
+        }
+
+        public KumaraswamySamplingIterator GetEnumerator() => this;
+    }
+
+    public struct GenericAlphaBetaSamplingIterator
+    {
+        private IEnhancedRandom _rng;
+        private double _alpha;
+        private double _beta;
+        private Func<IEnhancedRandom, double, double, double> _sampleFunc;
+
+        private double _current;
+        public double Current => _current;
+
+        public GenericAlphaBetaSamplingIterator(Func<IEnhancedRandom, double, double, double> sampleFunc, IEnhancedRandom rng, double alpha, double beta)
+        {
+            _rng = rng;
+            _alpha = alpha;
+            _beta = beta;
+            _current = default;
+            _sampleFunc = sampleFunc;
+        }
+
+        public bool MoveNext()
+        {
+            _current = _sampleFunc(_rng, _alpha, _beta);
+            return true;
+        }
+
+        public GenericAlphaBetaSamplingIterator GetEnumerator() => this;
+    }
+
+    [SuppressMessage("ReSharper", "IteratorNeverReturns")]
+    public class TRandomMock
+    {
+        private IEnhancedRandom _rng;
+
+        public TRandomMock(IEnhancedRandom rng)
+        {
+            _rng = rng;
+        }
+
+        public IEnumerable<double> BetaSamplesIEnumerable(double alpha, double beta)
+        {
+            if (!BetaDistribution.AreValidParams(alpha, beta)) throw new ArgumentException("Ye be given me invalid params!");
+            while (true)
+                yield return BetaDistribution.Sample(_rng, alpha, beta);
+        }
+
+        public BetaSamplingIterator BetaSamplesCustomIterator(double alpha, double beta)
+        {
+            if (!BetaDistribution.AreValidParams(alpha, beta)) throw new ArgumentException("Ye be given me invalid params!");
+            return new BetaSamplingIterator(_rng, alpha, beta);
+        }
+
+        public GenericAlphaBetaSamplingIterator BetaSamplesCustomGenericIterator(double alpha, double beta)
+        {
+            if (!BetaDistribution.AreValidParams(alpha, beta)) throw new ArgumentException("Ye be given me invalid params!");
+            return new GenericAlphaBetaSamplingIterator(BetaDistribution.Sample, _rng, alpha, beta);
+        }
+
+        public IEnumerable<double> KumaraswamySamplesIEnumerable(double alpha, double beta)
+        {
+            if (!KumaraswamyDistribution.AreValidParams(alpha, beta)) throw new ArgumentException("Ye be given me invalid params!");
+            while (true)
+                yield return KumaraswamyDistribution.Sample(_rng, alpha, beta);
+        }
+
+        public KumaraswamySamplingIterator KumaraswamySamplesCustomIterator(double alpha, double beta)
+        {
+            if (!KumaraswamyDistribution.AreValidParams(alpha, beta)) throw new ArgumentException("Ye be given me invalid params!");
+            return new KumaraswamySamplingIterator(_rng, alpha, beta);
+        }
+
+        public GenericAlphaBetaSamplingIterator KumaraswamySamplesCustomGenericIterator(double alpha, double beta)
+        {
+            if (!KumaraswamyDistribution.AreValidParams(alpha, beta)) throw new ArgumentException("Ye be given me invalid params!");
+            return new GenericAlphaBetaSamplingIterator(KumaraswamyDistribution.Sample, _rng, alpha, beta);
+        }
+    }
+
+    // |                                 Method | NumValues | Alpha | Beta |        Mean |     Error |    StdDev |
+    // |--------------------------------------- |---------- |------ |----- |------------:|----------:|----------:|
+    // |                  BetaSampleIEnumerable |         5 |     2 |  2.5 |    451.2 ns |   1.83 ns |   1.62 ns |
+    // |               BetaSampleCustomIterator |         5 |     2 |  2.5 |    419.3 ns |   2.17 ns |   2.03 ns |
+    // |        BetaSampleCustomGenericIterator |         5 |     2 |  2.5 |    425.8 ns |   2.19 ns |   2.05 ns |
+    // |           KumaraswamySampleIEnumerable |         5 |     2 |  2.5 |    442.5 ns |   3.08 ns |   2.73 ns |
+    // |        KumaraswamySampleCustomIterator |         5 |     2 |  2.5 |    393.9 ns |   1.48 ns |   1.39 ns |
+    // | KumaraswamySampleCustomGenericIterator |         5 |     2 |  2.5 |    391.1 ns |   0.97 ns |   0.86 ns |
+    // |                  BetaSampleIEnumerable |        10 |     2 |  2.5 |    895.2 ns |   4.06 ns |   3.39 ns |
+    // |               BetaSampleCustomIterator |        10 |     2 |  2.5 |    837.5 ns |   9.28 ns |   8.23 ns |
+    // |        BetaSampleCustomGenericIterator |        10 |     2 |  2.5 |    830.6 ns |   5.40 ns |   5.05 ns |
+    // |           KumaraswamySampleIEnumerable |        10 |     2 |  2.5 |    868.8 ns |   2.12 ns |   1.88 ns |
+    // |        KumaraswamySampleCustomIterator |        10 |     2 |  2.5 |    762.0 ns |   3.87 ns |   3.23 ns |
+    // | KumaraswamySampleCustomGenericIterator |        10 |     2 |  2.5 |    764.0 ns |   2.54 ns |   2.38 ns |
+    // |                  BetaSampleIEnumerable |        50 |     2 |  2.5 |  4,323.5 ns |  35.99 ns |  33.66 ns |
+    // |               BetaSampleCustomIterator |        50 |     2 |  2.5 |  4,099.8 ns |  23.45 ns |  21.94 ns |
+    // |        BetaSampleCustomGenericIterator |        50 |     2 |  2.5 |  4,111.2 ns |  35.92 ns |  33.60 ns |
+    // |           KumaraswamySampleIEnumerable |        50 |     2 |  2.5 |  4,216.0 ns |  13.56 ns |  11.33 ns |
+    // |        KumaraswamySampleCustomIterator |        50 |     2 |  2.5 |  3,748.8 ns |   6.39 ns |   5.33 ns |
+    // | KumaraswamySampleCustomGenericIterator |        50 |     2 |  2.5 |  3,755.1 ns |  22.48 ns |  19.92 ns |
+    // |                  BetaSampleIEnumerable |       100 |     2 |  2.5 |  8,649.9 ns |  78.54 ns |  73.47 ns |
+    // |               BetaSampleCustomIterator |       100 |     2 |  2.5 |  8,250.5 ns |  78.96 ns |  69.99 ns |
+    // |        BetaSampleCustomGenericIterator |       100 |     2 |  2.5 |  8,077.9 ns |  31.30 ns |  26.14 ns |
+    // |           KumaraswamySampleIEnumerable |       100 |     2 |  2.5 |  8,301.9 ns |  54.16 ns |  45.23 ns |
+    // |        KumaraswamySampleCustomIterator |       100 |     2 |  2.5 |  7,478.7 ns |  16.22 ns |  15.17 ns |
+    // | KumaraswamySampleCustomGenericIterator |       100 |     2 |  2.5 |  7,528.9 ns |  75.38 ns |  70.51 ns |
+    // |                  BetaSampleIEnumerable |      1000 |     2 |  2.5 | 85,646.1 ns | 471.86 ns | 394.03 ns |
+    // |               BetaSampleCustomIterator |      1000 |     2 |  2.5 | 80,705.7 ns | 229.42 ns | 191.57 ns |
+    // |        BetaSampleCustomGenericIterator |      1000 |     2 |  2.5 | 81,416.8 ns | 181.54 ns | 160.93 ns |
+    // |           KumaraswamySampleIEnumerable |      1000 |     2 |  2.5 | 83,631.6 ns | 355.59 ns | 315.22 ns |
+    // |        KumaraswamySampleCustomIterator |      1000 |     2 |  2.5 | 74,567.7 ns | 294.73 ns | 246.12 ns |
+    // | KumaraswamySampleCustomGenericIterator |      1000 |     2 |  2.5 | 75,578.8 ns | 262.72 ns | 232.90 ns |
+    public class InfiniteDistributionSampleBenchmarks
+    {
+        [Params(5, 10, 50, 100, 1000)]
+        public int NumValues;
+
+        [Params(2.0)]
+        public double Alpha;
+
+        [Params(2.5)]
+        public double Beta;
+
+        private TRandomMock _rng = null!;
+
+        [GlobalSetup]
+        public void GlobalSetup()
+        {
+            _rng = new TRandomMock(new MizuchiRandom(1UL));
+        }
+
+        // Tests will purposely avoid using LINQ's Take, to make it fair for the other iterator tests, and also to
+        // avoid incurring the overhead of Linq in the general-case IEnumerable test.
+        [Benchmark]
+        public double BetaSampleIEnumerable()
+        {
+            double lastNum = 0.0;
+            int numbersGenerated = 1;
+            foreach (double num in _rng.BetaSamplesIEnumerable(Alpha, Beta))
+            {
+                lastNum = num;
+                if (numbersGenerated == NumValues)
+                    break;
+                numbersGenerated++;
+            }
+
+            return lastNum;
+        }
+
+        [Benchmark]
+        public double BetaSampleCustomIterator()
+        {
+            double lastNum = 0.0;
+            int numbersGenerated = 1;
+            foreach (double num in _rng.BetaSamplesCustomIterator(Alpha, Beta))
+            {
+                lastNum = num;
+                if (numbersGenerated == NumValues)
+                    break;
+                numbersGenerated++;
+            }
+
+            return lastNum;
+        }
+
+        [Benchmark]
+        public double BetaSampleCustomGenericIterator()
+        {
+            double lastNum = 0.0;
+            int numbersGenerated = 1;
+            foreach (double num in _rng.BetaSamplesCustomIterator(Alpha, Beta))
+            {
+                lastNum = num;
+                if (numbersGenerated == NumValues)
+                    break;
+                numbersGenerated++;
+            }
+
+            return lastNum;
+        }
+
+        // Tests will purposely avoid using LINQ's Take, to make it fair for the other iterator tests, and also to
+        // avoid incurring the overhead of Linq in the general-case IEnumerable test.
+        [Benchmark]
+        public double KumaraswamySampleIEnumerable()
+        {
+            double lastNum = 0.0;
+            int numbersGenerated = 1;
+            foreach (double num in _rng.KumaraswamySamplesIEnumerable(Alpha, Beta))
+            {
+                lastNum = num;
+                if (numbersGenerated == NumValues)
+                    break;
+                numbersGenerated++;
+            }
+
+            return lastNum;
+        }
+
+        [Benchmark]
+        public double KumaraswamySampleCustomIterator()
+        {
+            double lastNum = 0.0;
+            int numbersGenerated = 1;
+            foreach (double num in _rng.KumaraswamySamplesCustomIterator(Alpha, Beta))
+            {
+                lastNum = num;
+                if (numbersGenerated == NumValues)
+                    break;
+                numbersGenerated++;
+            }
+
+            return lastNum;
+        }
+
+        [Benchmark]
+        public double KumaraswamySampleCustomGenericIterator()
+        {
+            double lastNum = 0.0;
+            int numbersGenerated = 1;
+            foreach (double num in _rng.KumaraswamySamplesCustomIterator(Alpha, Beta))
+            {
+                lastNum = num;
+                if (numbersGenerated == NumValues)
+                    break;
+                numbersGenerated++;
+            }
+
+            return lastNum;
+        }
+
     }
 }
