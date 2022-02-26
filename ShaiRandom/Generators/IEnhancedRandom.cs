@@ -436,8 +436,8 @@ namespace ShaiRandom.Generators
         /// while outer is still exclusive. If outer and inner are equal, this returns inner.
         /// </remarks>
         /// <seealso cref="NextUInt(uint)"> Here's a note about the bias present in the bounded generation.</seealso>
-        /// <param name="innerBound">the inclusive inner bound; may be any int, allowing negative</param>
-        /// <param name="outerBound">the exclusive outer bound; must be greater than innerBound (otherwise this returns innerBound)</param>
+        /// <param name="innerBound">the inclusive inner bound; may be any uint value.</param>
+        /// <param name="outerBound">the exclusive outer bound; must be greater than innerBound (otherwise this returns innerBound).</param>
         /// <returns>a pseudorandom uint between innerBound (inclusive) and outerBound (exclusive)</returns>
         uint NextUInt(uint innerBound, uint outerBound);
         /// <summary>
